@@ -51,7 +51,9 @@ def trainNB0(trainMatrix, trainCategory):
     # @param[out] : 각각의 Likelihood, Abusive문서일 확률
 
     numTrainDocs = len(trainMatrix) # train 시킬 문서의 수
+    print("Length of trainMatrix : %d" %numTrainDocs)
     numWords = len(trainMatrix[0])  # trainMatrxi[0]의 개수를 구함
+    print("Length of trainMatrix[0] : %d" %numWords)
     pAbusive = sum(trainCategory)/float(numTrainDocs)   # trainCategory 안에 abusive 문서로 분류된 것은 1로 되어있기 때문에, 전체로 나눠주면 Abusive의 확률이 나옴
     pnonAbusive = 1 - pAbusive;
     # 확률들을 곱할 때, 이 중 하나라도 0이되면 결과가 0이 되므로 이러한 영향력을 줄이기 위해 발생하는 단어의 개수를 모두 1로 초기화하고, 분모는 2로 초기화한다.#
@@ -70,35 +72,6 @@ def trainNB0(trainMatrix, trainCategory):
     p1Vect = log(p1Num/p1Denom)         # 문서가 Abusive 일때, 각 단어의 확률
     p0Vect = log(p0Num/p0Denom)         # 문서가 non-abusive 일때, 각 단어의 확률 
     return p0Vect, p1Vect, pAbusive
-    
-    def trainNB(trainMatrix, trainCategory):
-    # @Function : p(w|c_0), p(w|c_1) 를 구함. 
-    # @param[in] trainMatrix : 문서행렬 (단어를 0,1로 바꾼상태의 행렬)
-    # @param[in] trainCategory : 각 문서의 class label이 저장된 벡터
-    # @param[out] : 각각의 Likelihood, Abusive문서일 확률
-
-    numTrainDocs = len(trainMatrix) # train 시킬 문서의 수
-    numWords = len(trainMatrix[0])  # trainMatrxi[0]의 개수를 구함
-    pAbusive = sum(trainCategory)/float(numTrainDocs)   # trainCategory 안에 abusive 문서로 분류된 것은 1로 되어있기 때문에, 전체로 나눠주면 Abusive의 확률이 나옴
-    pnonAbusive = 1 - pAbusive;
-    # 확률들을 곱할 때, 이 중 하나라도 0이되면 결과가 0이 되므로 이러한 영향력을 줄이기 위해 발생하는 단어의 개수를 모두 1로 초기화하고, 분모는 2로 초기화한다.#
-    p0Num = ones(numWords); p1Num = ones(numWords)      # 분자초기화 vector
-    p0Denom = 0.0; p1Denom = 0.0                        # 분모초기화 scalar
-
-    for i in range(numTrainDocs):   # 훈련할 문서의 개수만큼 loop 
-        if trainCategory[i] == 1:   # 만약 문서가 abusive 문서일 경우 
-            p1Num += trainMatrix[i] # p1Num 분자에 i번째 문서 안의 1갯수만큼 해당 vocab의 수가 누적됨.
-            p1Denom += sum(trainMatrix[i])  # p1Denom 분모에 i번째 문서안의 1갯수만큼 증가함
-        else:                       # 문서가 non-abusive인 경우
-            p0Num += trainMatrix[i] 
-            p0Denom += sum(trainMatrix[i])
-    # underflow problem : 작은 수끼리 너무 많이 곱해져서 발생하는 문제로 부정확한 답을 산출하게 된다. (파이썬에서는 작은수를 많이 곱하면 0으로 반올림해버린다.) 
-    # 이것을 막기 위해 결과에 대해 자연로그를 계산하면 ln(a x b)=ln(a) + ln(b) 와 같으므로 이러한 문제를 해결할 수 있다.
-    p1Vect = p1Num/p1Denom         # 문서가 Abusive 일때, 각 단어의 확률
-    p0Vect = p0Num/p0Denom        # 문서가 non-abusive 일때, 각 단어의 확률 
-    return p0Vect, p1Vect, pAbusive
-
-
 
 def classifyNB(vec2Classify, p0Vec, p1Vec, pClass1):   
     # @Function : abusive인지 아닌지 분류한다.
@@ -137,20 +110,21 @@ def textParse(bigString):    # input is big string, #output is word list
     return [tok.lower() for tok in listOfTokens if len(tok) > 2] # 토큰별로 잘라내며 2글자 이상만 저장, 대문자는 소문자로 바뀌어서 저장.
     
 def spamTest():
+    # @Function : Spam(1) / Ham(0)
+    # @param[in] : spam, ham text files
+    # @param[out]: 
     docList=[]; classList = []; fullText =[]
     # Load and parse text files #
     for i in range(1,26):
         wordList = textParse(open('email/spam/%d.txt' % i).read())
         docList.append(wordList)
         fullText.extend(wordList)
-        classList.append(1) # ?
-        classList
+        classList.append(1) # spam에 해당하는게 하나 추가될 때마다 classList에 1을 추가.
         wordList = textParse(open('email/ham/%d.txt' % i).read())
         docList.append(wordList)
         fullText.extend(wordList)
-        classList.append(0) # ?
-        classList
-
+        classList.append(0) # spam이 아닌 것이 하나 추가될 때마다 classList에 0을 추가.
+        
     vocabList = createVocabList(docList)    # create vocabulary
     trainingSet = range(50); testSet=[]           # create test set
     for i in range(10):
